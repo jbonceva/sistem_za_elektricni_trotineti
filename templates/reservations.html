@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="mb-4 fw-bold">
+    My Reservations
+</h1>
+
+<div class="row">
+
+    {% for reservation in reservations %}
+
+    <div class="col-md-6">
+
+        <div class="card p-4 mb-4 shadow-sm h-100">
+
+            <h4 class="fw-bold mb-3">
+                Reservation #{{ reservation.id }}
+            </h4>
+
+            <p>
+                <strong>User:</strong>
+                {{ reservation.username }}
+            </p>
+
+            <p>
+                <strong>Scooter:</strong>
+                {{ reservation.scooter.model }}
+            </p>
+
+            <p>
+
+                <strong>Status:</strong>
+
+                {% if reservation.status == 'active' %}
+
+                    <span class="badge bg-success">
+                        Active
+                    </span>
+
+                {% endif %}
+
+                {% if reservation.status == 'completed' %}
+
+                    <span class="badge bg-primary">
+                        Completed
+                    </span>
+
+                {% endif %}
+
+                {% if reservation.status == 'cancelled' %}
+
+                    <span class="badge bg-danger">
+                        Cancelled
+                    </span>
+
+                {% endif %}
+
+            </p>
+
+            <p>
+                <strong>Reserved From:</strong>
+                {{ reservation.reserved_from }}
+            </p>
+
+
+            {% if reservation.status == 'active' %}
+
+            <a
+                href="/start-ride/{{ reservation.id }}/"
+                class="btn btn-success mt-2 w-100"
+            >
+                Start Ride
+            </a>
+
+            <a
+                href="/cancel-reservation/{{ reservation.id }}/"
+                class="btn btn-success mt-2 w-100"
+            >
+                Cancel Reservation
+            </a>
+
+            {% endif %}
+
+
+            {% if reservation.status != 'active' %}
+
+            <a
+                href="/delete-reservation/{{ reservation.id }}/"
+                class="btn btn-success mt-2 w-100"
+            >
+                Delete Reservation
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

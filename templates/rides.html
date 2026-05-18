@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="mb-4 fw-bold">
+    Active Rides
+</h1>
+
+<div class="row">
+
+    {% for ride in rides %}
+
+    <div class="col-md-6">
+
+        <div class="card p-4 mb-4 shadow-sm h-100">
+
+            <h4 class="fw-bold mb-3">
+                Ride #{{ ride.id }}
+            </h4>
+
+            <p>
+                <strong>User:</strong>
+                {{ ride.username }}
+            </p>
+
+            <p>
+                <strong>Scooter:</strong>
+                {{ ride.scooter.model }}
+            </p>
+
+            <p>
+
+                <strong>Status:</strong>
+
+                {% if ride.status == 'active' %}
+
+                    <span class="badge bg-success">
+                        Active Ride
+                    </span>
+
+                {% endif %}
+
+                {% if ride.status == 'completed' %}
+
+                    <span class="badge bg-primary">
+                        Completed
+                    </span>
+
+                {% endif %}
+
+            </p>
+
+            <p>
+                <strong>Start Time:</strong>
+                {{ ride.start_time }}
+            </p>
+
+            <p>
+                <strong>Total Price:</strong>
+
+                <span class="fw-bold text-success">
+                    {{ ride.total_price }} den
+                </span>
+            </p>
+
+
+            {% if ride.status == 'active' %}
+
+            <a
+                href="/end-ride/{{ ride.id }}/"
+                class="btn btn-success mt-2 w-100"
+            >
+                End Ride
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

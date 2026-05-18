@@ -1,0 +1,624 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    #map {
+        height: 550px;
+        width: 100%;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .page-header-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .page-header-icon svg {
+        width: 32px;
+        height: 32px;
+        fill: var(--dark);
+    }
+
+    .scooter-card {
+        transition: all 0.3s ease;
+    }
+
+    .scooter-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary);
+    }
+
+    .map-legend {
+        background: var(--dark-lighter);
+        padding: 16px 24px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .legend-title {
+        font-weight: 600;
+        color: var(--light);
+        margin-right: 16px;
+    }
+
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        margin-right: 8px;
+        font-size: 14px;
+        color: var(--gray);
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .legend-dot.available { background: #3FB950; }
+    .legend-dot.reserved { background: #D29922; }
+    .legend-dot.rented { background: #F85149; }
+    .legend-dot.maintenance { background: #8B949E; }
+
+    .scooter-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .scooter-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: var(--dark);
+    }
+
+    .scooter-model {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 16px;
+    }
+
+    .scooter-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--gray);
+        font-size: 14px;
+    }
+
+    .info-value {
+        color: var(--light);
+        font-weight: 500;
+    }
+
+    .battery-bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 4px;
+    }
+
+    .battery-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .battery-fill.low {
+        background: linear-gradient(90deg, var(--danger) 0%, #D73A3A 100%);
+    }
+
+    .battery-fill.medium {
+        background: linear-gradient(90deg, var(--warning) 0%, #B38600 100%);
+    }
+
+    .section-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .count-badge {
+        background: rgba(0,212,170,0.15);
+        color: var(--primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* Custom Leaflet styles */
+    .leaflet-popup-content-wrapper {
+        background: var(--dark-lighter);
+        color: var(--light);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .leaflet-popup-tip {
+        background: var(--dark-lighter);
+    }
+
+    .leaflet-container {
+        background: var(--dark);
+    }
+
+    .custom-popup {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .custom-popup h5 {
+        font-family: 'Space Grotesk', sans-serif;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .popup-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .popup-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .popup-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 13px;
+    }
+
+    .popup-label {
+        color: var(--gray);
+    }
+
+    .popup-value {
+        font-weight: 500;
+    }
+</style>
+
+<div class="page-header">
+    <div class="page-header-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+    </div>
+    <div>
+        <h1 class="mb-0" style="font-family: 'Space Grotesk', sans-serif; font-weight: 700;">Scooter Dashboard</h1>
+        <p class="text-muted mb-0">Real-time fleet tracking and management</p>
+    </div>
+</div>
+
+<!-- Map Legend -->
+<div class="map-legend">
+    <span class="legend-title">Status Legend:</span>
+    <span class="legend-item">
+        <span class="legend-dot available"></span>
+        Available
+    </span>
+    <span class="legend-item">
+        <span class="legend-dot reserved"></span>
+        Reserved
+    </span>
+    <span class="legend-item">
+        <span class="legend-dot rented"></span>
+        Rented
+    </span>
+    <span class="legend-item">
+        <span class="legend-dot maintenance"></span>
+        Maintenance
+    </span>
+</div>
+
+<div id="map"></div>
+
+<div class="section-title">
+    All Scooters
+    <span class="count-badge">{{ scooters|length }} total</span>
+</div>
+
+<div class="row g-4">
+    {% for scooter in scooters %}
+    <div class="col-lg-4 col-md-6">
+        <div class="card scooter-card border-0 p-4 h-100">
+            <div class="scooter-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+
+            <h2 class="scooter-model">{{ scooter.model }}</h2>
+
+            <div class="scooter-info">
+                <div class="info-row">
+                    <span class="info-label">Battery</span>
+                    <span class="info-value">{{ scooter.battery_level }}%</span>
+                </div>
+                <div class="battery-bar">
+                    <div
+                        class="battery-fill {% if scooter.battery_level < 20 %}low{% elif scooter.battery_level < 50 %}medium{% endif %}"
+                        style="width: {{ scooter.battery_level }}%"
+                    ></div>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Year</span>
+                    <span class="info-value">{{ scooter.year }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">
+                        {% if scooter.status == 'available' %}
+                            <span class="badge bg-success">Available</span>
+                        {% elif scooter.status == 'reserved' %}
+                            <span class="badge bg-warning text-dark">Reserved</span>
+                        {% elif scooter.status == 'rented' %}
+                            <span class="badge bg-danger">Rented</span>
+                        {% elif scooter.status == 'maintenance' %}
+                            <span class="badge bg-secondary">Maintenance</span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Station</span>
+                    <span class="info-value">{{ scooter.station.name }}</span>
+                </div>
+
+                {% if scooter.scootertracking_set.last %}
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value" style="font-size: 12px;">
+                        {{ scooter.scootertracking_set.last.latitude|floatformat:4 }},
+                        {{ scooter.scootertracking_set.last.longitude|floatformat:4 }}
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Zone</span>
+                    <span class="info-value">{{ scooter.scootertracking_set.last.zone.name }}</span>
+                </div>
+                {% else %}
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value text-muted">No data</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <a href="/scooter/{{ scooter.id }}/" class="btn btn-outline-primary w-100 mb-2">
+                View Details
+            </a>
+
+            {% if scooter.status == 'available' %}
+            <a href="/reserve/{{ scooter.id }}/" class="btn btn-primary w-100 mb-2">
+                Reserve
+            </a>
+            <a href="/instant-ride/{{ scooter.id }}/" class="btn btn-dark w-100">
+                Start Instant Ride
+            </a>
+
+            {% for payment in payments %}
+                {% if payment.rental.scooter.id == scooter.id and payment.status == 'paid' %}
+                <div class="mt-3">
+                    <span class="badge bg-success px-3 py-2">Last ride paid</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% endif %}
+
+            {% if scooter.status == 'reserved' %}
+                {% for reservation in reservations %}
+                    {% if reservation.scooter.id == scooter.id and reservation.status == 'active' %}
+                        {% if reservation.username == request.user %}
+                        <a href="/start-ride/{{ reservation.id }}/" class="btn btn-warning w-100">
+                            Start Ride
+                        </a>
+                        {% else %}
+                        <button class="btn btn-dark w-100" disabled>
+                            Unavailable
+                        </button>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% if scooter.status == 'rented' %}
+                {% for ride in rides %}
+                    {% if ride.scooter.id == scooter.id and ride.status == 'active' %}
+                    <a href="/end-ride/{{ ride.id }}/" class="btn btn-danger w-100">
+                        End Ride
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% if request.user.is_superuser %}
+            <a href="/send-to-maintenance/{{ scooter.id }}/" class="btn btn-warning w-100 mt-2">
+                Send to Maintenance
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    // Initialize map with dark theme
+    const map = L.map('map').setView([41.9981, 21.4254], 13);
+
+    // Dark map tiles
+    L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }
+    ).addTo(map);
+
+    // Get color by status
+    function getColorByStatus(status) {
+        switch(status) {
+            case 'available': return '#3FB950';
+            case 'reserved': return '#D29922';
+            case 'rented': return '#F85149';
+            case 'maintenance': return '#8B949E';
+            default: return '#00D4AA';
+        }
+    }
+
+    // Get status text
+    function getStatusText(status) {
+        switch(status) {
+            case 'available': return 'Available';
+            case 'reserved': return 'Reserved';
+            case 'rented': return 'Rented';
+            case 'maintenance': return 'Maintenance';
+            default: return 'Unknown';
+        }
+    }
+
+    // Custom bolt icon as SVG
+    function createBoltIcon(color) {
+        return L.divIcon({
+            html: `
+                <div style="
+                    width: 36px;
+                    height: 36px;
+                    background: ${color};
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 12px ${color}50;
+                    border: 2px solid rgba(255,255,255,0.3);
+                ">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #0D1117;">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+            `,
+            className: 'custom-bolt-icon',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18]
+        });
+    }
+
+    // Create markers for each scooter
+    {% for scooter in scooters %}
+        var scooterColor_{{ scooter.id }} = getColorByStatus('{{ scooter.status }}');
+        var scooterStatus_{{ scooter.id }} = getStatusText('{{ scooter.status }}');
+
+        {% if scooter.scootertracking_set.last %}
+            // Create marker with bolt icon
+            const marker_{{ scooter.id }} = L.marker(
+                [{{ scooter.scootertracking_set.last.latitude }}, {{ scooter.scootertracking_set.last.longitude }}],
+                { icon: createBoltIcon(scooterColor_{{ scooter.id }}) }
+            ).addTo(map);
+
+            // Popup with info
+            marker_{{ scooter.id }}.bindPopup(`
+                <div class="custom-popup" style="min-width: 200px; padding: 8px;">
+                    <h5 style="color: ${scooterColor_{{ scooter.id }}}; margin-bottom: 12px;">
+                        <span class="popup-icon" style="background: ${scooterColor_{{ scooter.id }}};">
+                            <svg viewBox="0 0 24 24" style="fill: #0D1117;">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </span>
+                        {{ scooter.model }}
+                    </h5>
+                    <div class="popup-row">
+                        <span class="popup-label">Battery</span>
+                        <span class="popup-value">{{ scooter.battery_level }}%</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Status</span>
+                        <span class="popup-value" style="color: ${scooterColor_{{ scooter.id }}};">
+                            ${scooterStatus_{{ scooter.id }}}
+                        </span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Zone</span>
+                        <span class="popup-value">{{ scooter.scootertracking_set.last.zone.name }}</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Price/min</span>
+                        <span class="popup-value">{{ scooter.scootertracking_set.last.zone.price_per_min }} MKD</span>
+                    </div>
+                    <hr style="margin: 12px 0; border-color: rgba(255,255,255,0.1);">
+                    <a href="/scooter/{{ scooter.id }}/"
+                       style="display: block; text-align: center; padding: 8px; background: var(--primary); color: #0D1117; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                        View Details
+                    </a>
+                </div>
+            `);
+        {% else %}
+            // Default location if no tracking data
+            const marker_{{ scooter.id }} = L.marker(
+                [41.9981, 21.4254],
+                { icon: createBoltIcon(scooterColor_{{ scooter.id }}) }
+            ).addTo(map);
+
+            marker_{{ scooter.id }}.bindPopup(`
+                <div class="custom-popup" style="min-width: 180px;">
+                    <h5 style="color: ${scooterColor_{{ scooter.id }}};">
+                        <span class="popup-icon" style="background: ${scooterColor_{{ scooter.id }}};">
+                            <svg viewBox="0 0 24 24" style="fill: #0D1117;">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </span>
+                        {{ scooter.model }}
+                    </h5>
+                    <p style="color: var(--gray);">No location data</p>
+                </div>
+            `);
+        {% endif %}
+
+        // Draw movement trail (polyline) from all tracking records
+        {% if scooter.scootertracking_set.all %}
+            var trackingPoints_{{ scooter.id }} = [
+                {% for tracking in scooter.scootertracking_set.all %}
+                    [{{ tracking.latitude }}, {{ tracking.longitude }}],
+                {% endfor %}
+            ];
+
+            // Draw trail if more than one point
+            if (trackingPoints_{{ scooter.id }}.length > 1) {
+                // Animated polyline with glow effect
+                var polyline_{{ scooter.id }} = L.polyline(
+                    trackingPoints_{{ scooter.id }},
+                    {
+                        color: scooterColor_{{ scooter.id }},
+                        weight: 4,
+                        opacity: 0.7,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }
+                ).addTo(map);
+
+                // Glow effect layer
+                var polylineGlow_{{ scooter.id }} = L.polyline(
+                    trackingPoints_{{ scooter.id }},
+                    {
+                        color: scooterColor_{{ scooter.id }},
+                        weight: 8,
+                        opacity: 0.2,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }
+                ).addTo(map);
+
+                polyline_{{ scooter.id }}.bindPopup(`
+                    <div class="custom-popup">
+                        <strong>Movement Trail</strong><br>
+                        <span style="color: var(--gray);">Scooter: {{ scooter.model }}</span><br>
+                        <span style="color: var(--gray);">Points: ${trackingPoints_{{ scooter.id }}.length}</span>
+                    </div>
+                `);
+            }
+
+            // Add small dots for each tracking location
+            {% for tracking in scooter.scootertracking_set.all %}
+                L.circleMarker(
+                    [{{ tracking.latitude }}, {{ tracking.longitude }}],
+                    {
+                        radius: 5,
+                        color: 'transparent',
+                        fillColor: scooterColor_{{ scooter.id }},
+                        fillOpacity: 0.5,
+                        weight: 0
+                    }
+                ).addTo(map).bindPopup(`
+                    <div class="custom-popup" style="font-size: 12px;">
+                        <strong>Position</strong><br>
+                        <span style="color: var(--gray);">{{ tracking.timestamp }}</span><br>
+                        <span style="color: var(--gray);">Zone: {{ tracking.zone.name }}</span>
+                    </div>
+                `);
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    // Scale control
+    L.control.scale({
+        metric: true,
+        imperial: false,
+        position: 'bottomright'
+    }).addTo(map);
+</script>
+
+{% endblock %}

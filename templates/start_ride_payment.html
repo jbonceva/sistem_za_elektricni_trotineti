@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .payment-container {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .payment-card {
+        background: var(--dark-lighter);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 24px;
+        padding: 40px;
+    }
+
+    .payment-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .payment-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .payment-icon svg {
+        width: 44px;
+        height: 44px;
+        fill: var(--dark);
+    }
+
+    .payment-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .payment-subtitle {
+        color: var(--gray);
+    }
+
+    .scooter-summary {
+        background: rgba(0,212,170,0.1);
+        border: 1px solid rgba(0,212,170,0.2);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 32px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        padding-top: 12px;
+        margin-top: 4px;
+    }
+
+    .summary-label {
+        color: var(--gray);
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: var(--light);
+    }
+
+    .summary-value.highlight {
+        color: var(--primary);
+        font-size: 1.25rem;
+    }
+
+    .form-label {
+        color: var(--light);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        color: var(--light);
+        padding: 14px 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        background: rgba(255,255,255,0.08);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
+        color: var(--light);
+    }
+
+    .form-control::placeholder {
+        color: var(--gray);
+    }
+
+    .card-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--gray);
+        font-size: 14px;
+        margin-top: 24px;
+    }
+
+    .secure-badge svg {
+        width: 16px;
+        height: 16px;
+        fill: var(--success);
+    }
+
+    .btn-start {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.1rem;
+        margin-top: 24px;
+    }
+
+    .btn-cancel {
+        width: 100%;
+        margin-top: 12px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--gray);
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--light);
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="payment-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+            <h1 class="payment-title">Start Your Ride</h1>
+            <p class="payment-subtitle">Enter payment details to begin</p>
+        </div>
+
+        <div class="scooter-summary">
+            <div class="summary-row">
+                <span class="summary-label">Scooter</span>
+                <span class="summary-value">{{ scooter.model }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Battery</span>
+                <span class="summary-value">{{ scooter.battery_level }}%</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Zone</span>
+                <span class="summary-value">{% if zone %}{{ zone.name }}{% else %}Standard{% endif %}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Rate</span>
+                <span class="summary-value highlight">{{ price_per_min }} MKD/min</span>
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Cardholder Name</label>
+                <input
+                    type="text"
+                    name="card_name"
+                    class="form-control"
+                    placeholder="John Doe"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Card Number</label>
+                <input
+                    type="text"
+                    name="card_number"
+                    class="form-control"
+                    placeholder="1234 5678 9012 3456"
+                    maxlength="19"
+                    required
+                >
+            </div>
+
+            <div class="card-row">
+                <div class="mb-3">
+                    <label class="form-label">Expiry Date</label>
+                    <input
+                        type="text"
+                        name="expiry"
+                        class="form-control"
+                        placeholder="MM/YY"
+                        maxlength="5"
+                        required
+                    >
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">CVV</label>
+                    <input
+                        type="text"
+                        name="cvv"
+                        class="form-control"
+                        placeholder="123"
+                        maxlength="4"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="secure-badge">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+                Secure SSL Payment
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-start">
+                Start Ride
+            </button>
+
+            <a href="/" class="btn btn-cancel">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

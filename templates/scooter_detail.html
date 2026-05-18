@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-5 shadow-sm border-0">
+
+    <h1 class="fw-bold mb-3">
+        {{ scooter.model }}
+    </h1>
+
+    <hr class="mb-4">
+
+    <p>
+        <strong>Battery:</strong>
+
+        <span class="fw-semibold">
+            {{ scooter.battery_level }}%
+        </span>
+    </p>
+
+    <p>
+        <strong>Year:</strong>
+
+        <span class="fw-semibold">
+            {{ scooter.year }}
+        </span>
+    </p>
+
+    <p>
+
+        <strong>Status:</strong>
+
+        {% if scooter.status == 'available' %}
+
+            <span class="badge bg-success">
+                Available
+            </span>
+
+        {% endif %}
+
+        {% if scooter.status == 'reserved' %}
+
+            <span class="badge bg-warning text-dark">
+                Reserved
+            </span>
+
+        {% endif %}
+
+        {% if scooter.status == 'rented' %}
+
+            <span class="badge bg-danger">
+                Riding
+            </span>
+
+        {% endif %}
+
+    </p>
+
+    <p>
+        <strong>Station:</strong>
+
+        <span class="fw-semibold">
+            {{ scooter.station.name }}
+        </span>
+    </p>
+
+
+    {% if scooter.status == 'available' %}
+
+    <a
+        href="/reserve/{{ scooter.id }}/"
+        class="btn btn-success mt-3 w-100"
+    >
+        Reserve Scooter
+    </a>
+
+    <a
+        href="/instant-ride/{{ scooter.id }}/"
+        class="btn btn-success mt-2 w-100"
+    >
+        Start Ride Instantly
+    </a>
+
+    {% endif %}
+
+
+    {% if scooter.status == 'reserved' %}
+
+    <button
+        class="btn btn-success mt-3 w-100"
+        disabled
+    >
+        Reserved
+    </button>
+
+    {% endif %}
+
+
+    {% if scooter.status == 'rented' %}
+
+    <button
+        class="btn btn-success mt-3 w-100"
+        disabled
+    >
+        Currently Riding
+    </button>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

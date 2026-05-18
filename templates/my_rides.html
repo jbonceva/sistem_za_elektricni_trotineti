@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 40px;
+    }
+
+    .page-header-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .page-header-icon svg {
+        width: 32px;
+        height: 32px;
+        fill: var(--dark);
+    }
+
+    .section-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--light);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .count-badge {
+        background: rgba(0,212,170,0.15);
+        color: var(--primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .count-badge.warning {
+        background: rgba(210,153,34,0.15);
+        color: var(--warning);
+    }
+
+    .count-badge.danger {
+        background: rgba(248,81,73,0.15);
+        color: var(--danger);
+    }
+
+    .ride-card {
+        background: var(--dark-lighter);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .ride-card:hover {
+        border-color: var(--primary);
+    }
+
+    .ride-card.active {
+        border-color: var(--success);
+        background: linear-gradient(135deg, rgba(63,185,80,0.1) 0%, var(--dark-lighter) 100%);
+    }
+
+    .ride-card.reserved {
+        border-color: var(--warning);
+        background: linear-gradient(135deg, rgba(210,153,34,0.1) 0%, var(--dark-lighter) 100%);
+    }
+
+    .ride-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .ride-scooter {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ride-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(0,212,170,0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ride-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--primary);
+    }
+
+    .ride-model {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .ride-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .info-label {
+        color: var(--gray);
+        font-size: 13px;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--light);
+    }
+
+    .info-value.price {
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--dark-lighter);
+        border-radius: 16px;
+        border: 1px dashed rgba(255,255,255,0.1);
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .empty-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: var(--gray);
+    }
+
+    .empty-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .empty-text {
+        color: var(--gray);
+        margin-bottom: 24px;
+    }
+
+    .section-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.1);
+        margin: 40px 0;
+    }
+</style>
+
+<div class="page-header">
+    <div class="page-header-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+    </div>
+    <div>
+        <h1 class="mb-0" style="font-family: 'Space Grotesk', sans-serif; font-weight: 700;">My Rides</h1>
+        <p class="text-muted mb-0">Your active and past rides</p>
+    </div>
+</div>
+
+<!-- Active Rides -->
+{% if active_rides %}
+<div class="section-title">
+    Active Rides
+    <span class="count-badge">{{ active_rides|length }}</span>
+</div>
+
+{% for ride in active_rides %}
+<div class="ride-card active">
+    <div class="ride-header">
+        <div class="ride-scooter">
+            <div class="ride-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="ride-model">{{ ride.scooter.model }}</div>
+                <span class="text-muted" style="font-size: 13px;">In progress</span>
+            </div>
+        </div>
+        <span class="badge bg-success">Active</span>
+    </div>
+
+    <div class="ride-info">
+        <div class="info-item">
+            <span class="info-label">Started</span>
+            <span class="info-value">{{ ride.start_time|date:"H:i" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Battery</span>
+            <span class="info-value">{{ ride.scooter.battery_level }}%</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Station</span>
+            <span class="info-value">{{ ride.scooter.station.name }}</span>
+        </div>
+    </div>
+
+    <a href="/end-ride/{{ ride.id }}/" class="btn btn-danger">End Ride</a>
+</div>
+{% endfor %}
+
+<div class="section-divider"></div>
+{% endif %}
+
+<!-- Active Reservations -->
+{% if active_reservations %}
+<div class="section-title">
+    Active Reservations
+    <span class="count-badge warning">{{ active_reservations|length }}</span>
+</div>
+
+{% for reservation in active_reservations %}
+<div class="ride-card reserved">
+    <div class="ride-header">
+        <div class="ride-scooter">
+            <div class="ride-icon" style="background: rgba(210,153,34,0.15);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill: var(--warning);">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="ride-model">{{ reservation.scooter.model }}</div>
+                <span class="text-muted" style="font-size: 13px;">Reserved</span>
+            </div>
+        </div>
+        <span class="badge bg-warning text-dark">Reserved</span>
+    </div>
+
+    <div class="ride-info">
+        <div class="info-item">
+            <span class="info-label">Reserved From</span>
+            <span class="info-value">{{ reservation.reserved_from|date:"H:i" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Until</span>
+            <span class="info-value">{{ reservation.reserved_until|date:"H:i" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Battery</span>
+            <span class="info-value">{{ reservation.scooter.battery_level }}%</span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="/start-ride/{{ reservation.id }}/" class="btn btn-primary">Start Ride</a>
+        <a href="/cancel-reservation/{{ reservation.id }}/" class="btn btn-outline-danger">Cancel</a>
+    </div>
+</div>
+{% endfor %}
+
+<div class="section-divider"></div>
+{% endif %}
+
+<!-- Completed Rides -->
+<div class="section-title">
+    Ride History
+    <span class="count-badge">{{ completed_rides|length }}</span>
+</div>
+
+{% if completed_rides %}
+{% for ride in completed_rides %}
+<div class="ride-card">
+    <div class="ride-header">
+        <div class="ride-scooter">
+            <div class="ride-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="ride-model">{{ ride.scooter.model }}</div>
+                <span class="text-muted" style="font-size: 13px;">{{ ride.start_time|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        <span class="badge bg-secondary">Completed</span>
+    </div>
+
+    <div class="ride-info">
+        <div class="info-item">
+            <span class="info-label">Duration</span>
+            <span class="info-value">{{ ride.start_time|date:"H:i" }} - {{ ride.end_time|date:"H:i" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Distance</span>
+            <span class="info-value">{{ ride.distance_km }} km</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Total</span>
+            <span class="info-value price">{{ ride.total_price }} MKD</span>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+    </div>
+    <h3 class="empty-title">No rides yet</h3>
+    <p class="empty-text">Start your first ride by reserving a scooter from the home page.</p>
+    <a href="/" class="btn btn-primary">Find a Scooter</a>
+</div>
+{% endif %}
+
+<!-- Penalties Section -->
+{% if penalties %}
+<div class="section-divider"></div>
+
+<div class="section-title">
+    Penalties
+    <span class="count-badge danger">{{ penalties|length }}</span>
+</div>
+
+{% for penalty in penalties %}
+<div class="ride-card" style="border-color: var(--danger);">
+    <div class="ride-header">
+        <div class="ride-scooter">
+            <div class="ride-icon" style="background: rgba(248,81,73,0.15);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill: var(--danger);">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="ride-model">{{ penalty.reason }}</div>
+                <span class="text-muted" style="font-size: 13px;">{{ penalty.penalty_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        <span class="badge bg-danger">{{ penalty.amount }} MKD</span>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}
