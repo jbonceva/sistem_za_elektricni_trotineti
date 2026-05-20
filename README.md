@@ -29,7 +29,7 @@ Django web application for managing electric scooters, reservations, rentals, pa
 
 ## Figma Design
 
-[Figma Project Link]([PASTE_FIGMA_LINK_HERE](https://www.figma.com/design/I9oOCcgkKaaKVgHTAeYTXQ/sistem_za_trotineti_UI_phone?t=qM7i6ommot2tYfSI-1))
+[Figma Project Link](https://www.figma.com/design/I9oOCcgkKaaKVgHTAeYTXQ/sistem_za_trotineti_UI_phone?t=qM7i6ommot2tYfSI-1)
 
 
 ```
